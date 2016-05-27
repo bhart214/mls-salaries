@@ -6,6 +6,7 @@ library(ggplot2)
 library(plotly)
 library(ggvis)
 library(ggplotly)
+library(broom)
 
 mls = read_rds("mls_clean.rds")
 
@@ -34,15 +35,16 @@ mls %>% filter(Year == 2016) %>%
 
 
 # Salary By Position
-mls$position <- factor(mls$position, levels = c("GK","D", "M", "F"), ordered = TRUE)
+mls$position2 <- factor(mls$position, levels = c("GK","D", "M", "F"), ordered = TRUE)
 
-ggplot(data = mls, aes(x = reorder(club, base_salary, FUN = median), y = (base_salary), color=position)) + geom_boxplot()
+ggplot(data = mls, aes(x = reorder(club, base_salary, FUN = median), y = (base_salary), color=position2)) + geom_boxplot()
 
-ggplot(data = mls, aes(x = position, y = log(base_salary), color = position)) + 
+ggplot(data = mls, aes(x = position, y = log(base_salary), color = position2)) + 
   geom_boxplot() + geom_point(position = "jitter", alpha = 0.15) + 
   facet_grid(.~Year) +
   labs(x = "Position", y = "log(Base Salary)") + ggtitle("MLS Salaries by Position (2007-2016)") +
   theme(panel.background = element_rect(fill = "grey97"), legend.title=element_blank())
+
 
 
 # ggplotly interactive of median salary for each club by year
@@ -66,6 +68,29 @@ ggplot(data = mls, aes(club, position)) +
 
 # Top 50 guaranteed compensations 2007-2016
 mls %>% top_n(n = 50, guaranteed_compensation) %>% arrange(desc(guaranteed_compensation)) %>% print(n=50)
+
+mls$log_sal = log(mls$base_salary)
+
+# Linear Model
+linReg = lm(log(base_salary) ~ factor(position) + (Year), data = mls)
+summary(linReg)
+op = par(mfrow = c(2,2))
+plot(linReg)
+par(op)
+
+# Predicted base salary for each position each year:
+df = data.frame(Year = rep(2007:2016, each = 4), position = rep(c("GK", "D", "M", "F"), 10))
+preds = predict(linReg, newdata = df, interval = "confidence")
+predictions = cbind(df, preds) %>% mutate(predicted_sal = exp(fit), lwr_ci = exp(lwr), upr_ci = exp(upr))
+predictions
+
+ggplot(data = mls, aes(x = Year, y = log(base_salary), color = position)) + geom_point(position = "jitter", alpha = 0.15) + 
+  geom_line(data = predictions, aes(x = Year, y = fit, color = position), size = 1.5) + 
+  labs(x = "Year", y = "log(Base Salary)") + 
+  ggtitle("MLS: Linear Regression of Year and Position Onto log(Base Salary) \n lm(log(base_salary) ~ factor(position) + Year") +
+  theme(legend.title=element_blank())
+
+# GAM
 
 
 # stats: median, mean, range, sd
