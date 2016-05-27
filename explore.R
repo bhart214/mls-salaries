@@ -45,6 +45,8 @@ ggplot(data = mls, aes(x = position, y = log(base_salary), color = position2)) +
   labs(x = "Position", y = "log(Base Salary)") + ggtitle("MLS Salaries by Position (2007-2016)") +
   theme(panel.background = element_rect(fill = "grey97"), legend.title=element_blank())
 
+ggsave("plots/salaries_by_position.png", height = 5, width = 7, units = "in")
+
 
 
 # ggplotly interactive of median salary for each club by year
@@ -88,7 +90,10 @@ ggplot(data = mls, aes(x = Year, y = log(base_salary), color = position)) + geom
   geom_line(data = predictions, aes(x = Year, y = fit, color = position), size = 1.5) + 
   labs(x = "Year", y = "log(Base Salary)") + 
   ggtitle("MLS: Linear Regression of Year and Position Onto log(Base Salary) \n lm(log(base_salary) ~ factor(position) + Year") +
-  theme(legend.title=element_blank())
+  theme(legend.title=element_blank()) + 
+  annotation_custom(tableGrob(tidy(linReg), theme=ttheme_minimal(base_size=5)), ymin=14, ymax=15.75, xmin=2005, xmax=2014)
+
+ggsave("plots/linMod_salary_position.png", width = 7, height = 5, units = "in")
 
 # GAM
 
