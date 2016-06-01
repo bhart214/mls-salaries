@@ -39,7 +39,7 @@ mls$position2 <- factor(mls$position, levels = c("GK","D", "M", "F"), ordered = 
 
 ggplot(data = mls, aes(x = reorder(club, base_salary, FUN = median), y = (base_salary), color=position2)) + geom_boxplot()
 
-ggplot(data = mls, aes(x = position, y = log(base_salary), color = position2)) + 
+ggplot(data = mls, aes(x = position2, y = log(base_salary), color = position2)) + 
   geom_boxplot() + geom_point(position = "jitter", alpha = 0.15) + 
   facet_grid(.~Year) +
   labs(x = "Position", y = "log(Base Salary)") + ggtitle("MLS Salaries by Position (2007-2016)") +
